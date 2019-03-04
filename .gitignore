@@ -1,0 +1,14 @@
+# Created by .ignore support plugin (hsz.mobi)
+.gitignore
+.idea/
+star-auth/src/test/
+star-auth/target/
+star-common/target/
+star-user/src/test/
+star-user/target/
+star-zuul/target/
+star.iml
+star-auth/star-auth.iml
+star-common/star-common.iml
+star-user/star-user.iml
+star-zuul/star-zuul.iml
