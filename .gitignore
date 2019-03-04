@@ -12,3 +12,4 @@ star-auth/star-auth.iml
 star-common/star-common.iml
 star-user/star-user.iml
 star-zuul/star-zuul.iml
+star-server/star-server.iml
