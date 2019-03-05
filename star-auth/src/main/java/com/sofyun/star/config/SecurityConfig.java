@@ -1,66 +1,27 @@
 package com.sofyun.star.config;
 
-import com.sofyun.star.util.AuthenticationFilter;
-import com.sofyun.star.util.AuthenticationPoint;
-import com.sofyun.star.util.TokenUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import com.sofyun.star.security.DomainUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
 
+/**
+ * Created by wangyunfei on 2017/6/9.
+ */
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${auth.secret}")
-    private String secret;
-
-    @Value("${auth.expiration}")
-    private Long expiration;
-
-    @Value("${auth.header}")
-    private String header;
-
-    @Value("${auth.tokenHead}")
-    private String tokenHead;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
+    @Override
     @Bean
-    public AuthenticationPoint authenticationPoint(){
-        return new AuthenticationPoint();
-    }
-
-    @Bean
-    public TokenUtil tokenUtil(){
-        return new TokenUtil()
-                .secret(secret)
-                .expiration(expiration)
-                .header(header)
-                .tokenHead(tokenHead);
-    }
-
-    @Bean
-    public AuthenticationFilter authenticationTokenFilter(){
-        return new AuthenticationFilter()
-                .service(userDetailsService)
-                .token(tokenUtil())
-                .tokenHead(tokenHead)
-                .tokenHeader(header);
+    public UserDetailsService userDetailsService(){
+        return new DomainUserDetailsService();
     }
 
     @Bean
@@ -68,37 +29,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Autowired
-    public void configureAuthentication(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder
-                .userDetailsService(this.userDetailsService)
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth
+                .userDetailsService(userDetailsService())
                 .passwordEncoder(passwordEncoder());
     }
 
-    @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
+    @Bean
+    public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
+        return new SecurityEvaluationContextExtension();
+    }
+
     @Override
+    @Bean
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
 
     @Override
-    protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .csrf().disable()
-                .exceptionHandling().authenticationEntryPoint(authenticationPoint()).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+    protected void configure(HttpSecurity http) throws Exception {
+        http
                 .authorizeRequests()
-                .antMatchers("/doc.html").permitAll()
-                .antMatchers("/swagger-resources/**").permitAll()
-                .antMatchers("/images/**").permitAll()
-                .antMatchers("/webjars/**").permitAll()
-                .antMatchers("/v2/api-docs").permitAll()
-                .antMatchers("/configuration/ui").permitAll()
-                .antMatchers("/configuration/security").permitAll()
-                .antMatchers("/auth/**").permitAll()
-                .anyRequest().authenticated();
-        httpSecurity.headers().cacheControl();
-        httpSecurity.addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-
+                .anyRequest().authenticated()
+                .and()
+                .csrf().disable();
     }
+
 }

@@ -1,4 +1,4 @@
-package com.sofyun.star.service;
+package com.sofyun.star.client;
 
 import com.sofyun.common.dto.auth.AuthUser;
 import com.sofyun.common.util.ResponseBo;
@@ -6,14 +6,14 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * @ClassName UserService
+ * @ClassName UserClient
  * @Description TODO
  * @Author gm
  * @Date 2019/2/28 14:38
  **/
 @FeignClient("star-user")
 @RequestMapping(value = "/user")
-public interface UserService {
+public interface UserClient {
 
     /**
      * 获取用户
