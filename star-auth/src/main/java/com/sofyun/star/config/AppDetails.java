@@ -1,104 +1,70 @@
 package com.sofyun.star.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.provider.ClientDetails;
 
 import java.util.*;
 
-public class AppDetails implements ClientDetails {
+public class AppDetails implements UserDetails {
 
     private static final long serialVersionUID = 2559033745576153420L;
 
-    private final String clientId;
+    private final String id;
+    private final String username;
+    private final String password;
+    private final Collection<? extends GrantedAuthority> authorities;
+    private final Date lastPasswordResetDate;
 
-    private final String secret;
-
-    private Set<String> authorizedGrantTypes;
-
-    private Set<String> scope;
-
-    private  Collection<GrantedAuthority> authorities;
-
-    public AppDetails(String clientId, String secret) {
-        this.clientId = clientId;
-        this.secret = secret;
-        Set<String> authorizedGrantTypes = new HashSet<>();
-        authorizedGrantTypes.add("client_credentials");
-        authorizedGrantTypes.add("refresh_token");
-        this.authorizedGrantTypes = authorizedGrantTypes;
-        Set<String> scope = new HashSet<>();
-        scope.add("trade");
-        this.scope = scope;
-        this.authorities = new ArrayList<>();
+    AppDetails(String id, String username, String password,  Collection<? extends GrantedAuthority> authorities, Date lastPasswordResetDate){
+        this.id =id;
+        this.username = username;
+        this.password = password;
+        this.authorities = authorities;
+        this.lastPasswordResetDate = lastPasswordResetDate;
     }
-
-    public String getSecret() {
-        return secret;
-    }
-
     @Override
-    public String getClientId() {
-        return this.clientId;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
     }
-
+    @JsonIgnore
     @Override
-    public Set<String> getResourceIds() {
-        return null;
+    public String getPassword() {
+        return password;
     }
-
     @Override
-    public boolean isSecretRequired() {
+    public String getUsername() {
+        return username;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isEnabled() {
         return true;
     }
 
-    @Override
-    public String getClientSecret() {
-        return this.secret;
+    @JsonIgnore
+    public String getId() {
+        return id;
     }
-
-    @Override
-    public boolean isScoped() {
-        return true;
-    }
-
-    @Override
-    public Set<String> getScope() {
-        return this.scope;
-    }
-
-    @Override
-    public Set<String> getAuthorizedGrantTypes() {
-        return this.authorizedGrantTypes;
-    }
-
-    @Override
-    public Set<String> getRegisteredRedirectUri() {
-        return null;
-    }
-
-    @Override
-    public Collection<GrantedAuthority> getAuthorities() {
-        return this.authorities;
-    }
-
-    @Override
-    public Integer getAccessTokenValiditySeconds() {
-        return null;
-    }
-
-    @Override
-    public Integer getRefreshTokenValiditySeconds() {
-        return null;
-    }
-
-    @Override
-    public boolean isAutoApprove(String s) {
-        return false;
-    }
-
-    @Override
-    public Map<String, Object> getAdditionalInformation() {
-        return null;
+    @JsonIgnore
+    public Date getLastPasswordResetDate() {
+        return lastPasswordResetDate;
     }
 }
 
