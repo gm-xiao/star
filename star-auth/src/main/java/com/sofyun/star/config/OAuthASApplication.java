@@ -3,14 +3,16 @@ package com.sofyun.star.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
@@ -20,7 +22,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
 /**
  * Oauth2 authorization server with internal client.
@@ -35,6 +38,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 @Configuration
 @EnableAuthorizationServer
 @EnableResourceServer
+@PropertySource({ "classpath:persistence.properties" })
 public class OAuthASApplication implements AuthorizationServerConfigurer, ResourceServerConfigurer {
 
 	/**********************************************************************************************************
@@ -42,6 +46,10 @@ public class OAuthASApplication implements AuthorizationServerConfigurer, Resour
 	 **********************************************************************************************************/
 
 	@Autowired protected AuthenticationManager authenticationManager;
+
+    @Autowired
+    private Environment env;
+
 
 	/**
 	 * Example user details service, in real life connected to some db.
@@ -62,21 +70,15 @@ public class OAuthASApplication implements AuthorizationServerConfigurer, Resour
 	 */
 	@Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-
 		clients.inMemory()
-
-			// internal client config
-
-			.withClient("internal")
-			.secret(passwordEncoder().encode("internal_secret"))
-			.scopes("account", "contacts", "internal")
+			.withClient("zuul")
+			.secret(passwordEncoder().encode("zuul"))
+			.scopes("all")
 			.resourceIds()
-			.authorizedGrantTypes("refresh_token", "password") // to get the access token uses directly username+password
-			.autoApprove(true) // all scopes are auto approved for internal client (no scopes approval view is displayed)
-			.accessTokenValiditySeconds(10*60) // by default for the internal client access token will expiry after 10 min
-			.refreshTokenValiditySeconds(30*60); // by default for the internal client refresh token will expiry after 30 min
-
-
+			.authorizedGrantTypes("refresh_token", "password")
+			.autoApprove(true)
+			.accessTokenValiditySeconds(10*60)
+			.refreshTokenValiditySeconds(30*60);
 	}
 
 	/**
@@ -112,10 +114,27 @@ public class OAuthASApplication implements AuthorizationServerConfigurer, Resour
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 		endpoints
-			.authenticationManager(authenticationManager) 
-			.userDetailsService(userDetailsService())
-			.reuseRefreshTokens(false);
+                .tokenStore(tokenStore())
+			    .authenticationManager(authenticationManager)
+			    .userDetailsService(userDetailsService())
+			    .reuseRefreshTokens(false)
+                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
 	}
+
+    @Bean
+    public DriverManagerDataSource dataSource() {
+        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(env.getProperty("jdbc.driverClassName"));
+        dataSource.setUrl(env.getProperty("jdbc.url"));
+        dataSource.setUsername(env.getProperty("jdbc.user"));
+        dataSource.setPassword(env.getProperty("jdbc.pass"));
+        return dataSource;
+    }
+
+    @Bean
+    public TokenStore tokenStore() {
+        return new JdbcTokenStore(dataSource());
+    }
 
 	/**********************************************************************************************************
 	 * {@link ResourceServerConfigurer} = security configuration.

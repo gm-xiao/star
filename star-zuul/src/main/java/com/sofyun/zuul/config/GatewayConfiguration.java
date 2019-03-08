@@ -1,6 +1,4 @@
-package com.sofyun.user.config;
-
-import javax.sql.DataSource;
+package com.sofyun.zuul.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +8,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
@@ -21,16 +18,18 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 @Configuration
 @PropertySource({ "classpath:persistence.properties" })
 @EnableResourceServer
-public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter {
+public class GatewayConfiguration extends ResourceServerConfigurerAdapter {
 
     @Autowired
     private Environment env;
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-		    .and()
-		    .authorizeRequests().anyRequest().permitAll();
+        http.authorizeRequests().
+            antMatchers("/api/uaa/**").
+            permitAll().
+            antMatchers("/**").
+            authenticated();
     }
 
     @Override
