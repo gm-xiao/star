@@ -25,11 +25,11 @@ public class GatewayConfiguration extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
-        http.authorizeRequests().
-            antMatchers("/api/uaa/**").
-            permitAll().
-            antMatchers("/**").
-            authenticated();
+        http.authorizeRequests()
+            .antMatchers("/api/uaa/**", "/doc.html") .permitAll()
+            .antMatchers("/v2/api-docs", "/configuration/ui", "/configuration/security", "/webjars/**", "/swagger-resources/**").permitAll()
+            .antMatchers("/**").authenticated();
+
     }
 
     @Override

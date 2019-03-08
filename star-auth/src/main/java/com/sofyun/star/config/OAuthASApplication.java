@@ -144,8 +144,10 @@ public class OAuthASApplication implements AuthorizationServerConfigurer, Resour
 	public void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
+			.antMatchers("/v2/api-docs", "/doc.html", "/configuration/ui", "/configuration/security", "/webjars/**", "/swagger-resources/**").permitAll()
 			.anyRequest()
-			.authenticated();	}
+			.authenticated();
+	}
 
 	@Override
 	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {

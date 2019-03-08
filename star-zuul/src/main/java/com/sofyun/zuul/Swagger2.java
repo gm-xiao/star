@@ -42,8 +42,8 @@ public class Swagger2 {
         @Override
         public List<SwaggerResource> get() {
             List resources = new ArrayList<>();
-            resources.add(swaggerResource("认证中心", "/api-auth/v2/api-docs", "1.0"));
-            resources.add(swaggerResource("用户中心", "/api-user/v2/api-docs", "1.0"));
+            resources.add(swaggerResource("认证中心", "/api/uaa/api-docs", "1.0"));
+            resources.add(swaggerResource("用户中心", "/api/v1/api-docs", "1.0"));
             return resources;
         }
 
