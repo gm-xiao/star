@@ -20,16 +20,28 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 @EnableResourceServer
 public class GatewayConfiguration extends ResourceServerConfigurerAdapter {
 
+    private static final String[] AUTH_WHITELIST = {
+            "/**/**/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "swagger-resources/configuration/ui",
+            "/doc.html",
+            "/webjars/**"
+    };
+
     @Autowired
     private Environment env;
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-            .antMatchers("/api/uaa/**", "/doc.html") .permitAll()
-            .antMatchers("/v2/api-docs", "/configuration/ui", "/configuration/security", "/webjars/**", "/swagger-resources/**").permitAll()
-            .antMatchers("/**").authenticated();
-
+        http.authorizeRequests().antMatchers("/api/uaa/**", "/v2/api-docs") .permitAll();
+        for (String au:AUTH_WHITELIST) {
+            http.authorizeRequests().antMatchers(au).permitAll();
+        }
+        http.authorizeRequests().antMatchers("/**").authenticated();
     }
 
     @Override

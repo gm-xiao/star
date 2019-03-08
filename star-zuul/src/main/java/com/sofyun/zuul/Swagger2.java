@@ -35,25 +35,4 @@ public class Swagger2 {
                 .version("1.0")
                 .build();
     }
-
-    @Component
-    @Primary
-    class DocumentationConfig implements SwaggerResourcesProvider {
-        @Override
-        public List<SwaggerResource> get() {
-            List resources = new ArrayList<>();
-            resources.add(swaggerResource("认证中心", "/api/uaa/api-docs", "1.0"));
-            resources.add(swaggerResource("用户中心", "/api/v1/api-docs", "1.0"));
-            return resources;
-        }
-
-        private SwaggerResource swaggerResource(String name, String location, String version) {
-            SwaggerResource swaggerResource = new SwaggerResource();
-            swaggerResource.setName(name);
-            swaggerResource.setLocation(location);
-            swaggerResource.setSwaggerVersion(version);
-            return swaggerResource;
-        }
-    }
-
 }
