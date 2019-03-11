@@ -1,7 +1,7 @@
 package com.sofyun.star.client;
 
-import com.sofyun.common.dto.auth.AuthUser;
 import com.sofyun.common.util.ResponseBo;
+import com.sofyun.user.auth.AuthUser;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  * @Date 2019/2/28 14:38
  **/
 @FeignClient("star-user")
-@RequestMapping(value = "/user")
+@RequestMapping(value = "/rpc/user")
 public interface UserClient {
 
     /**
@@ -20,7 +20,7 @@ public interface UserClient {
      * @param username
      * @return
      */
-    @GetMapping(value = "/find/username")
+    @GetMapping(value = "/findByCode")
     public ResponseBo<AuthUser> findByCode(@RequestParam("username")String username);
 
     /**

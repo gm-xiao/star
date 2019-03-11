@@ -1,7 +1,7 @@
-package com.sofyun.user.web;
+package com.sofyun.user.rpc;
 
-import com.sofyun.common.dto.auth.AuthUser;
 import com.sofyun.common.util.ResponseBo;
+import com.sofyun.user.auth.AuthUser;
 import com.sofyun.user.domain.User;
 import com.sofyun.user.service.UserService;
 import io.swagger.annotations.Api;
@@ -24,17 +24,17 @@ import java.util.ArrayList;
  **/
 @Slf4j
 @RestController
-@RequestMapping(value = "/user")
+@RequestMapping(value = "/rpc/user")
 @RefreshScope
 @Api(value="用户管理",tags={"用户操作接口"})
-public class UserController {
+public class UserApiController {
 
     @Autowired
     private UserService userService;
 
     @ApiOperation(value = "获取用户")
     @ApiImplicitParam(name = "username", value = "用户名", required = true, dataType = "String", paramType = "query")
-    @GetMapping(value = "/find/username")
+    @GetMapping(value = "/findByCode")
     public ResponseBo<AuthUser> findByCode(@RequestParam("username")String username){
         User user = userService.findByCode(username);
         AuthUser authUser = null;
