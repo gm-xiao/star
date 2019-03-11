@@ -15,6 +15,7 @@
         <module>star-zuul</module>
         <module>star-server</module>
         <module>star-user-model</module>
+        <module>star-cache</module>
     </modules>
 
     <parent>

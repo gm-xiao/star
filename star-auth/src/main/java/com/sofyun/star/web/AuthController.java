@@ -1,6 +1,7 @@
 package com.sofyun.star.web;
 
 import com.sofyun.common.util.ResponseBo;
+import com.sofyun.common.util.SmsService;
 import com.sofyun.star.client.UserClient;
 import com.sofyun.star.model.AuthLoginRequest;
 import com.sofyun.star.model.AuthRegRequest;
@@ -10,10 +11,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @ClassName AuthController
@@ -64,6 +62,17 @@ public class AuthController {
         authUser.setIsDelete("0");
         userClient.save(authUser);
         return ResponseBo.ok(true).setMessage("注册成功");
+    }
+
+    @ApiOperation(value = "获取短信验证码")
+    @GetMapping("/vcode")
+    public ResponseBo<Boolean> vcode(@RequestParam String mobile){
+        if (SmsService.sendVcode("【签名】", mobile, SmsService.createCode(6))){
+            //@TODO 验证码存放redis
+            return ResponseBo.ok(true).setMessage("发送成功");
+        } else {
+            return ResponseBo.ok(true).setMessage("发送失败");
+        }
     }
 
 }
