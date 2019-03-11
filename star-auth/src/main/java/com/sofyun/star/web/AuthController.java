@@ -3,6 +3,8 @@ package com.sofyun.star.web;
 import com.sofyun.common.util.ResponseBo;
 import com.sofyun.common.util.SmsService;
 import com.sofyun.star.client.UserClient;
+import com.sofyun.star.config.RedisUtil;
+import com.sofyun.star.constant.ConstantKey;
 import com.sofyun.star.model.AuthLoginRequest;
 import com.sofyun.star.model.AuthRegRequest;
 import com.sofyun.user.auth.AuthUser;
@@ -30,6 +32,9 @@ public class AuthController {
     @Autowired
     private UserClient userClient;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     @ApiOperation(value = "用户登录")
     @PostMapping("/login")
     public ResponseBo<Boolean> login(@RequestBody AuthLoginRequest authLoginRequest){
@@ -40,7 +45,7 @@ public class AuthController {
         if (null == authUser){
             return ResponseBo.getInstance(false).setMessage("用户不存在").setCode(403);
         }
-        if (!authUser.getPwd().equals(passwordEncoder.encode(authLoginRequest.getPassword()))){
+        if (!passwordEncoder.matches(authLoginRequest.getPassword(), authUser.getPwd())){
             return ResponseBo.getInstance(false).setMessage("登录密码错误").setCode(403);
         }
         return ResponseBo.ok(true).setMessage("登录成功");
@@ -53,6 +58,13 @@ public class AuthController {
         if (null != authUser){
             return ResponseBo.getInstance(false).setMessage("用户已存在").setCode(403);
         }
+        if (StringUtils.isBlank(authRegRequest.getVcode())){
+            return ResponseBo.getInstance(false).setMessage("参数错误").setCode(403);
+        }
+        Object object = redisUtil.get(ConstantKey.AUTH_VCODE + authRegRequest.getUsername());
+        if (null == object || !authRegRequest.getVcode().equals(object.toString())){
+            return ResponseBo.getInstance(false).setMessage("无效的验证码").setCode(403);
+        }
         authUser = new AuthUser();
         authUser.setCode(authRegRequest.getUsername());
         authUser.setPwd(passwordEncoder.encode(authRegRequest.getPassword()));
@@ -61,18 +73,26 @@ public class AuthController {
         authUser.setStatus("0");
         authUser.setIsDelete("0");
         userClient.save(authUser);
+        redisUtil.del(ConstantKey.AUTH_VCODE + authRegRequest.getUsername());
         return ResponseBo.ok(true).setMessage("注册成功");
     }
 
     @ApiOperation(value = "获取短信验证码")
     @GetMapping("/vcode")
     public ResponseBo<Boolean> vcode(@RequestParam String mobile){
-        if (SmsService.sendVcode("【签名】", mobile, SmsService.createCode(6))){
-            //@TODO 验证码存放redis
+        if (StringUtils.isBlank(mobile)){
+            return ResponseBo.getInstance(false).setMessage("参数错误").setCode(403);
+        }
+        if (null != redisUtil.get(ConstantKey.AUTH_VCODE_MOBILE + mobile)){
+            return ResponseBo.getInstance(false).setMessage("请稍后重试").setCode(403);
+        }
+        String vcode = SmsService.createCode(6);
+        if (SmsService.sendVcode("【全币支付】", mobile, vcode)){
+            redisUtil.set(ConstantKey.AUTH_VCODE + mobile, vcode, 5 * 60);
+            redisUtil.set(ConstantKey.AUTH_VCODE_MOBILE + mobile, mobile,  60);
             return ResponseBo.ok(true).setMessage("发送成功");
         } else {
-            return ResponseBo.ok(true).setMessage("发送失败");
+            return ResponseBo.getInstance(false).setMessage("发送失败");
         }
     }
-
 }
