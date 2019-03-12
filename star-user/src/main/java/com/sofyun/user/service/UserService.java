@@ -25,4 +25,8 @@ public interface UserService extends IService<User> {
 
     IPage<User> selectPage(UserBO userBO);
 
+    User selectOne(UserBO userBO);
+
+    User getModel(String id);
+
 }

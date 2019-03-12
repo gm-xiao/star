@@ -9,15 +9,13 @@ import com.sofyun.user.model.UserListRequest;
 import com.sofyun.user.model.UserResponse;
 import com.sofyun.user.service.UserService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +57,14 @@ public class UserController {
         return ResponseBo.ok(page).setMessage("查询成功");
     }
 
-
+    @GetMapping("/get")
+    @ApiOperation(value = "获取用户")
+    @ApiImplicitParam(name = "id", value = "ID", required = true, dataType = "String", paramType = "query")
+    public ResponseBo<?> getModel(@RequestParam String id){
+        User user = userService.getModel(id);
+        UserResponse userResponse = new UserResponse();
+        BeanUtils.copyProperties(user, userResponse);
+        return ResponseBo.ok(userResponse).setMessage("查询成功");
+    }
 
 }

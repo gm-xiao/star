@@ -60,5 +60,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userMapper.selectPage(page, getQueryWrapper(userBO));
     }
 
+    @Override
+    public User getModel(String id) {
+        return userMapper.selectById(id);
+    }
+
+    @Override
+    public User selectOne(UserBO userBO) {
+        return userMapper.selectOne(getQueryWrapper(userBO));
+    }
+
 
 }
