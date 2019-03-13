@@ -12,3 +12,5 @@
     集成携程开源配置中心apollo
     nacos分支集成阿里开源注册中心、配置中心nacos
     
+### 其他资料
+[配置中心]<a>https://github.com/ctripcorp/apollo</a>    
