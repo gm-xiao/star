@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.sofyun</groupId>
-            <artifactId>star-user-model</artifactId>
+            <artifactId>star-user-domain</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
