@@ -60,11 +60,13 @@ public class UserController {
     @GetMapping("/get")
     @ApiOperation(value = "获取用户")
     @ApiImplicitParam(name = "id", value = "ID", required = true, dataType = "String", paramType = "query")
-    public ResponseBo<?> getModel(@RequestParam String id){
+    public ResponseBo<?> getModel(@RequestParam("id") String id){
         User user = userService.getModel(id);
         UserResponse userResponse = new UserResponse();
         BeanUtils.copyProperties(user, userResponse);
         return ResponseBo.ok(userResponse).setMessage("查询成功");
     }
+
+
 
 }

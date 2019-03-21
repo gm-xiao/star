@@ -10,12 +10,17 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.time.Duration;
 
 @Configuration
 public class RedisConfig extends CachingConfigurerSupport {
@@ -57,8 +62,12 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheManager cacheManager = RedisCacheManager.create(connectionFactory);
-        return cacheManager;
+        RedisCacheWriter writer = RedisCacheWriter.lockingRedisCacheWriter(connectionFactory);
+        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig();
+        configuration.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new ObjectSerializer()));
+        configuration.disableKeyPrefix();
+//        configuration.entryTtl(Duration.ofDays(1));
+        return new RedisCacheManager(writer, configuration);
     }
 
 }
