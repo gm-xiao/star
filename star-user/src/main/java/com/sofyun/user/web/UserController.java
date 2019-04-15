@@ -1,8 +1,12 @@
 package com.sofyun.user.web;
 
-import com.sofyun.common.dto.auth.AuthUser;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sofyun.common.model.Page;
 import com.sofyun.common.util.ResponseBo;
 import com.sofyun.user.domain.User;
+import com.sofyun.user.model.UserBO;
+import com.sofyun.user.model.UserListRequest;
+import com.sofyun.user.model.UserResponse;
 import com.sofyun.user.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -13,14 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName UserController
  * @Description TODO
  * @Author gm
- * @Date 2019/2/28 14:32
+ * @Date 2019/3/11 15:27
  **/
 @Slf4j
 @RestController
@@ -32,32 +36,37 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @ApiOperation(value = "获取用户")
-    @ApiImplicitParam(name = "username", value = "用户名", required = true, dataType = "String", paramType = "query")
-    @GetMapping(value = "/find/username")
-    public ResponseBo<AuthUser> findByCode(@RequestParam("username")String username){
-        User user = userService.findByCode(username);
-        AuthUser authUser = null;
-        if (null != user){
-            authUser = new AuthUser();
-            BeanUtils.copyProperties(user, authUser);
-            authUser.setRoles(new ArrayList<>());
+    @ApiOperation(value = "获取用户列表")
+    @GetMapping("/list")
+    public ResponseBo<?> list(@RequestBody UserListRequest userListRequest){
+        UserBO userBO = new UserBO();
+        BeanUtils.copyProperties(userListRequest, userBO);
+        IPage<User> iPage = userService.selectPage(userBO);
+        Page<UserResponse> page = new Page<>();
+        List<UserResponse> userResponses = new ArrayList<>();
+        page.setContent(userResponses);
+        page.setNumber(iPage.getCurrent());
+        page.setSize(iPage.getSize());
+        page.setTotalPages(iPage.getPages());
+        page.setTotalElements(iPage.getTotal());
+        for (User user : iPage.getRecords()){
+            UserResponse userResponse = new UserResponse();
+            BeanUtils.copyProperties(user, userResponse);
+            userResponses.add(userResponse);
         }
-        return ResponseBo.ok(authUser);
+        return ResponseBo.ok(page).setMessage("查询成功");
     }
 
-    @ApiOperation(value = "保存用户")
-    @PostMapping(value = "/save")
-    public ResponseBo<Boolean> save(@RequestBody AuthUser authUser){
-        User user = new User();
-        BeanUtils.copyProperties(authUser, user);
-        user.setCreateTime(LocalDateTime.now());
-        Boolean result = userService.insert(user);
-        if (result){
-            return ResponseBo.ok(true).setMessage("保存成功");
-        }else {
-            return ResponseBo.getInstance(false).setMessage("保存失败").setCode(500);
-        }
+    @GetMapping("/get")
+    @ApiOperation(value = "获取用户")
+    @ApiImplicitParam(name = "id", value = "ID", required = true, dataType = "String", paramType = "query")
+    public ResponseBo<?> getModel(@RequestParam("id") String id){
+        User user = userService.getModel(id);
+        UserResponse userResponse = new UserResponse();
+        BeanUtils.copyProperties(user, userResponse);
+        return ResponseBo.ok(userResponse).setMessage("查询成功");
     }
+
+
 
 }
